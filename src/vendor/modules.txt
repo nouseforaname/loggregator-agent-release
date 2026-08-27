@@ -1,7 +1,7 @@
-# code.cloudfoundry.org/go-batching v0.0.0-20260720131453-c5722fe0072b
+# code.cloudfoundry.org/go-batching v0.0.0-20260818081528-9e768cac2659
 ## explicit; go 1.25.0
 code.cloudfoundry.org/go-batching
-# code.cloudfoundry.org/go-diodes v0.0.0-20260720065427-59f65622c841
+# code.cloudfoundry.org/go-diodes v0.0.0-20260818081020-5f89c9327272
 ## explicit; go 1.25.0
 code.cloudfoundry.org/go-diodes
 # code.cloudfoundry.org/go-envstruct v1.7.0
@@ -13,11 +13,11 @@ code.cloudfoundry.org/go-loggregator/v10
 code.cloudfoundry.org/go-loggregator/v10/conversion
 code.cloudfoundry.org/go-loggregator/v10/rfc5424
 code.cloudfoundry.org/go-loggregator/v10/rpc/loggregator_v2
-# code.cloudfoundry.org/go-metric-registry v0.0.0-20260811073445-dd3e9d2bd72b
+# code.cloudfoundry.org/go-metric-registry v0.0.0-20260824172628-6c444af08690
 ## explicit; go 1.25.8
 code.cloudfoundry.org/go-metric-registry
 code.cloudfoundry.org/go-metric-registry/testhelpers
-# code.cloudfoundry.org/tlsconfig v0.64.0
+# code.cloudfoundry.org/tlsconfig v0.65.0
 ## explicit; go 1.25.8
 code.cloudfoundry.org/tlsconfig
 code.cloudfoundry.org/tlsconfig/certtest
@@ -42,10 +42,10 @@ github.com/cespare/xxhash/v2
 # github.com/cloudfoundry/dropsonde v1.1.0
 ## explicit; go 1.18
 github.com/cloudfoundry/dropsonde/emitter
-# github.com/cloudfoundry/sonde-go v0.0.0-20260720065356-6728909ed72b
+# github.com/cloudfoundry/sonde-go v0.0.0-20260818080958-d46298cd8513
 ## explicit; go 1.23
 github.com/cloudfoundry/sonde-go/events
-# github.com/go-chi/chi/v5 v5.3.1
+# github.com/go-chi/chi/v5 v5.3.2
 ## explicit; go 1.23
 github.com/go-chi/chi/v5
 # github.com/go-logr/logr v1.4.4
@@ -63,7 +63,7 @@ github.com/google/go-cmp/cmp/internal/diff
 github.com/google/go-cmp/cmp/internal/flags
 github.com/google/go-cmp/cmp/internal/function
 github.com/google/go-cmp/cmp/internal/value
-# github.com/google/pprof v0.0.0-20260802141513-ef3492d7dac3
+# github.com/google/pprof v0.0.0-20260825171938-4d453200e7d9
 ## explicit; go 1.25.0
 github.com/google/pprof/profile
 # github.com/grpc-ecosystem/grpc-gateway/v2 v2.30.0
@@ -117,7 +117,7 @@ github.com/onsi/ginkgo/v2/internal/reporters
 github.com/onsi/ginkgo/v2/internal/testingtproxy
 github.com/onsi/ginkgo/v2/reporters
 github.com/onsi/ginkgo/v2/types
-# github.com/onsi/gomega v1.42.1
+# github.com/onsi/gomega v1.43.0
 ## explicit; go 1.25.0
 github.com/onsi/gomega
 github.com/onsi/gomega/format
@@ -177,7 +177,7 @@ go.opentelemetry.io/proto/otlp/logs/v1
 go.opentelemetry.io/proto/otlp/metrics/v1
 go.opentelemetry.io/proto/otlp/resource/v1
 go.opentelemetry.io/proto/otlp/trace/v1
-# go.step.sm/crypto v0.88.0
+# go.step.sm/crypto v0.89.0
 ## explicit; go 1.25.8
 go.step.sm/crypto/fingerprint
 go.step.sm/crypto/internal/bcrypt_pbkdf
@@ -284,13 +284,13 @@ golang.org/x/tools/internal/stdlib
 golang.org/x/tools/internal/typeparams
 golang.org/x/tools/internal/typesinternal
 golang.org/x/tools/internal/versions
-# google.golang.org/genproto/googleapis/api v0.0.0-20260810153831-ec0a7760b754
+# google.golang.org/genproto/googleapis/api v0.0.0-20260825221802-da73d73af1c5
 ## explicit; go 1.25.0
 google.golang.org/genproto/googleapis/api/httpbody
-# google.golang.org/genproto/googleapis/rpc v0.0.0-20260810153831-ec0a7760b754
+# google.golang.org/genproto/googleapis/rpc v0.0.0-20260825221802-da73d73af1c5
 ## explicit; go 1.25.0
 google.golang.org/genproto/googleapis/rpc/status
-# google.golang.org/grpc v1.83.0
+# google.golang.org/grpc v1.83.2
 ## explicit; go 1.25.0
 google.golang.org/grpc
 google.golang.org/grpc/attributes
