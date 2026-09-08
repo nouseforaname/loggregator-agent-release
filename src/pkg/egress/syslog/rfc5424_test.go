@@ -12,9 +12,7 @@ import (
 )
 
 var _ = Describe("RFC5424", func() {
-	var (
-		c *syslog.Converter
-	)
+	var c *syslog.Converter
 
 	BeforeEach(func() {
 		c = syslog.NewConverter()
@@ -184,16 +182,99 @@ var _ = Describe("RFC5424", func() {
 		expectConversion(receivedMsgs, expectedMsg+"\n")
 	})
 
-	It("truncates processid if is longer than 128", func() {
-		env := buildLogEnvelope("MY TASK", strings.Repeat("A", 300), "just a test", loggregator_v2.Log_OUT)
-		receivedMsgs, err := c.ToRFC5424(env, "host")
-		Expect(err).ToNot(HaveOccurred())
-		expectedMsg := fmt.Sprintf(`<14>1 1970-01-01T00:00:00.012345+00:00 host test-app-id [MY-TASK/%s] - [tags@47450 source_type="MY TASK"] just a test`, strings.Repeat("A", 118))
-		expectConversion(receivedMsgs, expectedMsg+"\n")
+	When("sourceType > 128 and index empty", func() {
+		It("truncates sourceType when index is empty", func() {
+			taskName := strings.Repeat("A", 128)
+			index := ""
+			expectedRenderedProcID := taskName[:128]
+
+			env := buildLogEnvelope(taskName, index, "just a test", loggregator_v2.Log_OUT)
+
+			receivedMsgs, err := c.ToRFC5424(env, "host")
+			Expect(err).ToNot(HaveOccurred())
+			expectedMsg := fmt.Sprintf(`<14>1 1970-01-01T00:00:00.012345+00:00 host test-app-id %s - [tags@47450 source_type="%s"] just a test`, expectedRenderedProcID, taskName)
+			expectConversion(receivedMsgs, expectedMsg+"\n")
+		})
+	})
+	When("sourceType > 128 and index > 128", func() {
+		It("truncates sourceType and index", func() {
+			taskName := strings.Repeat("A", 129)
+			index := strings.Repeat("B", 129)
+			expectedRenderedProcID := fmt.Sprintf("[%s/%s]", taskName[:64], index[:61])
+			Expect(expectedRenderedProcID).To(HaveLen(128))
+
+			env := buildLogEnvelope(taskName, index, "just a test", loggregator_v2.Log_OUT)
+
+			receivedMsgs, err := c.ToRFC5424(env, "host")
+			Expect(err).ToNot(HaveOccurred())
+			expectedMsg := fmt.Sprintf(`<14>1 1970-01-01T00:00:00.012345+00:00 host test-app-id %s - [tags@47450 source_type="%s"] just a test`, expectedRenderedProcID, taskName)
+			expectConversion(receivedMsgs, expectedMsg+"\n")
+		})
+	})
+	When("len(sourceType) +len(index) + separators([/]) <= 128", func() {
+		for _, inputPairLengths := range [][]int{
+			{128, 0},
+			{124, 1},
+			{123, 2},
+			{66, 59},
+			{65, 60},
+			{64, 61},
+			{63, 62},
+			{62, 63},
+			{3, 122},
+			{4, 121},
+			{5, 120},
+		} {
+			It("will not truncate", func() {
+				taskName := strings.Repeat("A", inputPairLengths[0])
+				index := strings.Repeat("B", inputPairLengths[1])
+				expectedRenderedProcID := taskName
+				if inputPairLengths[1] != 0 {
+					expectedRenderedProcID = fmt.Sprintf("[%s/%s]", taskName, index)
+				}
+				Expect(expectedRenderedProcID).To(HaveLen(128))
+
+				env := buildLogEnvelope(taskName, index, "just a test", loggregator_v2.Log_OUT)
+
+				receivedMsgs, err := c.ToRFC5424(env, "host")
+				Expect(err).ToNot(HaveOccurred())
+				expectedMsg := fmt.Sprintf(`<14>1 1970-01-01T00:00:00.012345+00:00 host test-app-id %s - [tags@47450 source_type="%s"] just a test`, expectedRenderedProcID, taskName)
+				expectConversion(receivedMsgs, expectedMsg+"\n")
+			})
+		}
+	})
+	When("len(sourceType) +len(index) + separators([/]) <= 128", func() {
+		for _, inputPairLengths := range [][]any{
+			{128, 1, fmt.Sprintf("[%s/%s]", strings.Repeat("A", 124), "B")},
+			{124, 2, fmt.Sprintf("[%s/%s]", strings.Repeat("A", 123), strings.Repeat("B", 2))},
+			{123, 3, fmt.Sprintf("[%s/%s]", strings.Repeat("A", 122), strings.Repeat("B", 3))},
+			{66, 60, fmt.Sprintf("[%s/%s]", strings.Repeat("A", 65), strings.Repeat("B", 60))},
+			{65, 61, fmt.Sprintf("[%s/%s]", strings.Repeat("A", 64), strings.Repeat("B", 61))},
+			{64, 62, fmt.Sprintf("[%s/%s]", strings.Repeat("A", 64), strings.Repeat("B", 61))}, // the additional length adds to the ratio of Instance
+			{63, 64, fmt.Sprintf("[%s/%s]", strings.Repeat("A", 63), strings.Repeat("B", 62))},
+			{62, 65, fmt.Sprintf("[%s/%s]", strings.Repeat("A", 62), strings.Repeat("B", 63))},
+			{4, 122, fmt.Sprintf("[%s/%s]", strings.Repeat("A", 4), strings.Repeat("B", 121))},
+			{5, 121, fmt.Sprintf("[%s/%s]", strings.Repeat("A", 5), strings.Repeat("B", 120))},
+			{6, 120, fmt.Sprintf("[%s/%s]", strings.Repeat("A", 6), strings.Repeat("B", 119))},
+			{70, 70, fmt.Sprintf("[%s/%s]", strings.Repeat("A", 63), strings.Repeat("B", 62))},
+			{80, 70, fmt.Sprintf("[%s/%s]", strings.Repeat("A", 66), strings.Repeat("B", 59))},
+		} {
+			It("will truncate with minimal ratio'd cutoff", func() {
+				taskName := strings.Repeat("A", inputPairLengths[0].(int))
+				index := strings.Repeat("B", inputPairLengths[1].(int))
+				expectedRenderedProcID := inputPairLengths[2].(string)
+
+				env := buildLogEnvelope(taskName, index, "just a test", loggregator_v2.Log_OUT)
+
+				receivedMsgs, err := c.ToRFC5424(env, "host")
+				Expect(err).ToNot(HaveOccurred())
+				expectedMsg := fmt.Sprintf(`<14>1 1970-01-01T00:00:00.012345+00:00 host test-app-id %s - [tags@47450 source_type="%s"] just a test`, expectedRenderedProcID, taskName)
+				expectConversion(receivedMsgs, expectedMsg+"\n")
+			})
+		}
 	})
 
 	Describe("validation", func() {
-
 		It("returns an error if app name includes unprintable characters", func() {
 			env := buildLogEnvelope("MY TASK", "2", "just a test", 20)
 			env.SourceId = "   "

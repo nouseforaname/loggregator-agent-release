@@ -146,22 +146,39 @@ func appendNewline(msg []byte) []byte {
 }
 
 func generateProcessID(sourceType, sourceInstance string) string {
+	// 128 is the max size for the total length
+	// if sourceInstance is not "" we need 3 additional characters for templating
+	// [sourceType/sourceInstance]
+	// source type is almost certainly very small, except someone decides to have very
+	// long generated task names
 	sourceType = strings.ToUpper(sourceType)
-	if sourceInstance != "" {
-		// 128 is the max size, 3 for [] and /, truncate to fit
-		// source type is almost certainly very small
-		if len(sourceType)+len(sourceInstance)+3 > 128 {
-			sourceInstance = sourceInstance[:(128 - len(sourceType) - 3)]
-		}
-		tmp := make([]byte, 0, 3+len(sourceType)+len(sourceInstance))
-		tmp = append(tmp, '[')
-		tmp = append(tmp, []byte(strings.ReplaceAll(sourceType, " ", "-"))...)
-		tmp = append(tmp, '/')
-		tmp = append(tmp, []byte(sourceInstance)...)
-		tmp = append(tmp, ']')
 
-		return string(tmp)
+	maxReturnLen := 128
+	if sourceInstance == "" {
+		return sourceType[:min(len(sourceType), maxReturnLen)]
 	}
 
-	return fmt.Sprintf("[%s]", sourceType)
+	additonalLen := 3
+	totalLen := len(sourceType) + len(sourceInstance) + additonalLen
+	if totalLen <= maxReturnLen {
+		return fmt.Sprintf("[%s/%s]", sourceType, sourceInstance)
+	}
+
+	ratioSource := float32(len(sourceType)) / float32(totalLen)
+	ratioInstance := float32(len(sourceInstance)+additonalLen) / float32(totalLen)
+
+	needToCut := totalLen - maxReturnLen
+
+	removeSourceType := int(ratioSource * float32(needToCut))
+	removeInstance := int(ratioInstance * float32(needToCut))
+
+	if ratioSource > ratioInstance {
+		removeSourceType += 1
+	} else {
+		removeInstance += 1
+	}
+	sourceType = sourceType[:len(sourceType)-int(removeSourceType)]
+	sourceInstance = sourceInstance[:len(sourceInstance)-int(removeInstance)]
+
+	return fmt.Sprintf("[%s/%s]", sourceType, sourceInstance)
 }
